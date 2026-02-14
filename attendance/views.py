@@ -26,7 +26,6 @@ def studentProfile(request):
         ,status=status.HTTP_200_OK
     )
 
-from .serializer import SignupSerializer, LoginSerializer
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -373,7 +372,7 @@ def student_register(request):
             user = form.save()
             login(request, user)
             messages.success(request, "Account created successfully!")
-            return redirect('scan_qr')
+            return redirect('login')
         else:
             messages.error(request, "Please correct the errors below.")
     else:

@@ -1,194 +1,326 @@
-{% extends 'attendance/base.html' %}
-
-{% block title %}Student Registration — PARACH ICT Academy{% endblock %}
-
-{% block extra_head %}
+{% extends 'attendance/base.html' %} {% block title %}Student Registration —
+PARACH ICT Academy{% endblock %} {% block extra_head %}
 <style>
-    /* ── PAGE LAYOUT ── */
-    .reg-page {
-        width: 100%;
-        max-width: 620px;
-        animation: fade-up 0.7s cubic-bezier(0.23,1,0.32,1) forwards;
-        opacity: 0;
-        transform: translateY(24px);
+  /* ── PAGE LAYOUT ── */
+  .reg-page {
+    width: 100%;
+    max-width: 620px;
+    animation: fade-up 0.7s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  @keyframes fade-up {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ── TOP META ROW ── */
+  .reg-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .reg-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .reg-breadcrumb svg {
+    opacity: 0.4;
+  }
+
+  .reg-breadcrumb .sep {
+    opacity: 0.3;
+  }
+
+  .reg-breadcrumb .current {
+    color: var(--neon-cyan);
+    opacity: 0.8;
+  }
+
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .step-pip {
+    width: 24px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(0, 245, 255, 0.15);
+  }
+
+  .step-pip.active {
+    background: var(--neon-cyan);
+    box-shadow: 0 0 8px rgba(0, 245, 255, 0.5);
+  }
+
+  /* ── GLASS CARD ── */
+  .reg-card {
+    background: var(--panel-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 36px 32px 32px;
+    box-shadow:
+      0 0 0 1px rgba(0, 245, 255, 0.04),
+      0 24px 60px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 0 80px rgba(0, 128, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Corner brackets */
+  .reg-card::before,
+  .reg-card::after {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-color: var(--neon-cyan);
+    border-style: solid;
+    opacity: 0.4;
+  }
+  .reg-card::before {
+    top: 0;
+    left: 0;
+    border-width: 2px 0 0 2px;
+    border-radius: 6px 0 0 0;
+  }
+  .reg-card::after {
+    bottom: 0;
+    right: 0;
+    border-width: 0 2px 2px 0;
+    border-radius: 0 0 6px 0;
+  }
+
+  /* Shimmer */
+  .reg-shimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 55%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(0, 245, 255, 0.025),
+      transparent
+    );
+    animation: shimmer-sweep 9s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* ── LOGIN REDIRECT ── */
+  .reg-login-redirect {
+    margin-top: 26px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0, 20, 45, 0.55);
+    border: 1px solid rgba(0, 245, 255, 0.12);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.8px;
+    color: var(--text-dim);
+    position: relative;
+    overflow: hidden;
+    transition:
+      border-color 0.3s,
+      background 0.3s;
+  }
+
+  .reg-login-redirect::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(0, 245, 255, 0.05),
+      transparent
+    );
+    transition: left 0.6s ease;
+  }
+
+  .reg-login-redirect:hover {
+    border-color: rgba(0, 245, 255, 0.3);
+    background: rgba(0, 30, 60, 0.65);
+  }
+
+  .reg-login-redirect:hover::before {
+    left: 150%;
+  }
+
+  .login-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 245, 255, 0.25);
+    color: var(--neon-cyan);
+    font-weight: 600;
+    transition: all 0.25s ease;
+  }
+
+  .login-link svg {
+    transition: transform 0.25s ease;
+  }
+
+  .login-link:hover {
+    background: rgba(0, 245, 255, 0.08);
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 12px rgba(0, 245, 255, 0.25);
+  }
+
+  .login-link:hover svg {
+    transform: translateX(3px);
+  }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .reg-login-redirect {
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
     }
 
-    @keyframes fade-up {
-        to { opacity: 1; transform: translateY(0); }
+    .login-link {
+      justify-content: center;
     }
+  }
 
-    /* ── TOP META ROW ── */
-    .reg-meta {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 18px;
-        flex-wrap: wrap;
-        gap: 10px;
+  @keyframes shimmer-sweep {
+    0% {
+      left: -100%;
     }
-
-    .reg-breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        color: var(--text-dim);
-        letter-spacing: 1px;
+    50% {
+      left: 150%;
     }
-
-    .reg-breadcrumb svg { opacity: 0.4; }
-
-    .reg-breadcrumb .sep { opacity: 0.3; }
-
-    .reg-breadcrumb .current {
-        color: var(--neon-cyan);
-        opacity: 0.8;
+    100% {
+      left: 150%;
     }
+  }
 
-    .step-indicator {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        color: var(--text-dim);
-        letter-spacing: 1px;
+  /* ── CARD HEADER ── */
+  .card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .card-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+
+  .card-subtitle {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .g-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 0.9em;
+    background: var(--neon-cyan);
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%,
+    100% {
+      opacity: 1;
     }
-
-    .step-pip {
-        width: 24px;
-        height: 4px;
-        border-radius: 2px;
-        background: rgba(0,245,255,0.15);
+    50% {
+      opacity: 0;
     }
+  }
 
-    .step-pip.active {
-        background: var(--neon-cyan);
-        box-shadow: 0 0 8px rgba(0,245,255,0.5);
+  .reg-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    background: rgba(0, 128, 255, 0.08);
+    border: 1px solid rgba(0, 128, 255, 0.2);
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgba(120, 180, 255, 0.8);
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+
+  .reg-badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--neon-blue);
+    box-shadow: 0 0 5px var(--neon-blue);
+    animation: dot-blink 2.5s ease-in-out infinite;
+  }
+
+  @keyframes dot-blink {
+    0%,
+    100% {
+      opacity: 1;
     }
-
-    /* ── GLASS CARD ── */
-    .reg-card {
-        background: var(--panel-bg);
-        backdrop-filter: blur(24px) saturate(180%);
-        -webkit-backdrop-filter: blur(24px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        border-radius: 8px;
-        padding: 36px 32px 32px;
-        box-shadow:
-            0 0 0 1px rgba(0,245,255,0.04),
-            0 24px 60px rgba(0,0,0,0.7),
-            inset 0 1px 0 rgba(255,255,255,0.05),
-            0 0 80px rgba(0,128,255,0.05);
-        position: relative;
-        overflow: hidden;
+    50% {
+      opacity: 0.2;
     }
+  }
 
-    /* Corner brackets */
-    .reg-card::before,
-    .reg-card::after {
-        content: '';
-        position: absolute;
-        width: 22px; height: 22px;
-        border-color: var(--neon-cyan);
-        border-style: solid;
-        opacity: 0.4;
-    }
-    .reg-card::before { top: 0; left: 0;  border-width: 2px 0 0 2px; border-radius: 6px 0 0 0; }
-    .reg-card::after  { bottom: 0; right: 0; border-width: 0 2px 2px 0; border-radius: 0 0 6px 0; }
+  /* ── DIVIDER ── */
+  .g-divider {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(0, 245, 255, 0.25),
+      transparent
+    );
+    margin: 20px 0;
+    opacity: 0.4;
+  }
 
-    /* Shimmer */
-    .reg-shimmer {
-        position: absolute;
-        top: 0; left: -100%;
-        width: 55%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(0,245,255,0.025), transparent);
-        animation: shimmer-sweep 9s ease-in-out infinite;
-        pointer-events: none;
-    }
-
-    @keyframes shimmer-sweep {
-        0%  { left: -100%; }
-        50% { left: 150%; }
-        100%{ left: 150%; }
-    }
-
-    /* ── CARD HEADER ── */
-    .card-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        margin-bottom: 6px;
-    }
-
-    .card-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--text-primary);
-        letter-spacing: 0.3px;
-        margin-bottom: 4px;
-    }
-
-    .card-subtitle {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        color: var(--text-dim);
-        letter-spacing: 1px;
-    }
-
-    .g-cursor {
-        display: inline-block;
-        width: 2px; height: 0.9em;
-        background: var(--neon-cyan);
-        margin-left: 2px;
-        vertical-align: middle;
-        animation: blink 1s step-end infinite;
-    }
-
-    @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50%       { opacity: 0; }
-    }
-
-    .reg-badge {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 5px 11px;
-        background: rgba(0,128,255,0.08);
-        border: 1px solid rgba(0,128,255,0.2);
-        border-radius: 20px;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        color: rgba(120,180,255,0.8);
-        letter-spacing: 1px;
-        flex-shrink: 0;
-    }
-
-    .reg-badge-dot {
-        width: 5px; height: 5px;
-        border-radius: 50%;
-        background: var(--neon-blue);
-        box-shadow: 0 0 5px var(--neon-blue);
-        animation: dot-blink 2.5s ease-in-out infinite;
-    }
-
-    @keyframes dot-blink {
-        0%, 100% { opacity: 1; }
-        50%       { opacity: 0.2; }
-    }
-
-    /* ── DIVIDER ── */
-    .g-divider {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(0,245,255,0.25), transparent);
-        margin: 20px 0;
-        opacity: 0.4;
-    }
-
-    /* ── FORM FIELDS ── */
-    /*
+  /* ── FORM FIELDS ── */
+  /*
       Django's {{ form.as_p }} renders each field as:
         <p>
           <label for="id_X">Label:</label>
@@ -197,402 +329,497 @@
       We target these p > label + input / select / textarea patterns.
     */
 
-    .reg-form p {
-        position: relative;
-        margin-bottom: 20px;
-    }
+  .reg-form p {
+    position: relative;
+    margin-bottom: 20px;
+  }
 
-    /* Labels → monospace system labels */
-    .reg-form p > label,
-    .reg-form p > label:first-child {
-        display: block;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 1.6px;
-        color: var(--neon-cyan);
-        opacity: 0.75;
-        text-transform: uppercase;
-        margin-bottom: 7px;
-    }
+  /* Labels → monospace system labels */
+  .reg-form p > label,
+  .reg-form p > label:first-child {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.6px;
+    color: var(--neon-cyan);
+    opacity: 0.75;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
 
-    /* All inputs */
-    .reg-form input[type="text"],
-    .reg-form input[type="email"],
-    .reg-form input[type="password"],
-    .reg-form input[type="number"],
-    .reg-form input[type="tel"],
-    .reg-form input[type="url"],
-    .reg-form input[type="date"],
-    .reg-form textarea {
-        width: 100%;
-        padding: 12px 16px;
-        background: rgba(0,15,35,0.65);
-        border: 1px solid rgba(0,245,255,0.14);
-        border-radius: 4px;
-        color: var(--text-primary);
-        font-size: 14px;
-        font-family: var(--font-main);
-        outline: none;
-        transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
-        letter-spacing: 0.3px;
-    }
+  /* All inputs */
+  .reg-form input[type="text"],
+  .reg-form input[type="email"],
+  .reg-form input[type="password"],
+  .reg-form input[type="number"],
+  .reg-form input[type="tel"],
+  .reg-form input[type="url"],
+  .reg-form input[type="date"],
+  .reg-form textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(0, 15, 35, 0.65);
+    border: 1px solid rgba(0, 245, 255, 0.14);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: var(--font-main);
+    outline: none;
+    transition:
+      border-color 0.3s,
+      box-shadow 0.3s,
+      background 0.3s;
+    letter-spacing: 0.3px;
+  }
 
-    .reg-form input[type="text"]:focus,
-    .reg-form input[type="email"]:focus,
-    .reg-form input[type="password"]:focus,
-    .reg-form input[type="number"]:focus,
-    .reg-form input[type="tel"]:focus,
-    .reg-form input[type="url"]:focus,
-    .reg-form input[type="date"]:focus,
-    .reg-form textarea:focus {
-        border-color: var(--neon-cyan);
-        background: rgba(0,30,60,0.7);
-        box-shadow: 0 0 0 1px rgba(0,245,255,0.14), 0 0 20px rgba(0,245,255,0.07);
-    }
+  .reg-form input[type="text"]:focus,
+  .reg-form input[type="email"]:focus,
+  .reg-form input[type="password"]:focus,
+  .reg-form input[type="number"]:focus,
+  .reg-form input[type="tel"]:focus,
+  .reg-form input[type="url"]:focus,
+  .reg-form input[type="date"]:focus,
+  .reg-form textarea:focus {
+    border-color: var(--neon-cyan);
+    background: rgba(0, 30, 60, 0.7);
+    box-shadow:
+      0 0 0 1px rgba(0, 245, 255, 0.14),
+      0 0 20px rgba(0, 245, 255, 0.07);
+  }
 
-    .reg-form input::placeholder,
-    .reg-form textarea::placeholder {
-        color: rgba(150,190,220,0.28);
-        font-size: 13px;
-    }
+  .reg-form input::placeholder,
+  .reg-form textarea::placeholder {
+    color: rgba(150, 190, 220, 0.28);
+    font-size: 13px;
+  }
 
-    /* Date input calendar icon tint */
-    .reg-form input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(0.7) sepia(1) saturate(5) hue-rotate(170deg);
-        cursor: pointer;
-        opacity: 0.6;
-    }
+  /* Date input calendar icon tint */
+  .reg-form input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.7) sepia(1) saturate(5) hue-rotate(170deg);
+    cursor: pointer;
+    opacity: 0.6;
+  }
 
-    /* Select */
-    .reg-form select {
-        width: 100%;
-        padding: 12px 40px 12px 16px;
-        background: rgba(0,15,35,0.65);
-        border: 1px solid rgba(0,245,255,0.14);
-        border-radius: 4px;
-        color: var(--text-primary);
-        font-size: 14px;
-        font-family: var(--font-main);
-        outline: none;
-        appearance: none;
-        -webkit-appearance: none;
-        cursor: pointer;
-        transition: border-color 0.3s, box-shadow 0.3s;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300f5ff' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 14px center;
-    }
+  /* Select */
+  .reg-form select {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    background: rgba(0, 15, 35, 0.65);
+    border: 1px solid rgba(0, 245, 255, 0.14);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: var(--font-main);
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition:
+      border-color 0.3s,
+      box-shadow 0.3s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300f5ff' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
 
-    .reg-form select:focus {
-        border-color: var(--neon-cyan);
-        box-shadow: 0 0 0 1px rgba(0,245,255,0.14), 0 0 20px rgba(0,245,255,0.07);
-    }
+  .reg-form select:focus {
+    border-color: var(--neon-cyan);
+    box-shadow:
+      0 0 0 1px rgba(0, 245, 255, 0.14),
+      0 0 20px rgba(0, 245, 255, 0.07);
+  }
 
-    .reg-form select option {
-        background: #0a1628;
-        color: var(--text-primary);
-    }
+  .reg-form select option {
+    background: #0a1628;
+    color: var(--text-primary);
+  }
 
-    /* Textarea */
-    .reg-form textarea {
-        resize: vertical;
-        min-height: 96px;
-        line-height: 1.55;
-    }
+  /* Textarea */
+  .reg-form textarea {
+    resize: vertical;
+    min-height: 96px;
+    line-height: 1.55;
+  }
 
-    /* Checkbox / Radio */
-    .reg-form input[type="checkbox"],
-    .reg-form input[type="radio"] {
-        width: 16px; height: 16px;
-        accent-color: var(--neon-cyan);
-        cursor: pointer;
-        margin-right: 8px;
-        vertical-align: middle;
-    }
+  /* Checkbox / Radio */
+  .reg-form input[type="checkbox"],
+  .reg-form input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--neon-cyan);
+    cursor: pointer;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
 
-    /* Error list from Django */
-    .reg-form ul.errorlist {
-        list-style: none;
-        margin: 6px 0 0;
-        padding: 0;
-    }
+  /* Error list from Django */
+  .reg-form ul.errorlist {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 0;
+  }
 
-    .reg-form ul.errorlist li {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-family: var(--font-mono);
-        font-size: 11px;
-        color: #ffb3be;
-        letter-spacing: 0.5px;
-        margin-top: 4px;
-    }
+  .reg-form ul.errorlist li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #ffb3be;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
 
-    .reg-form ul.errorlist li::before {
-        content: '▸';
-        color: var(--neon-red);
-        font-size: 10px;
-    }
+  .reg-form ul.errorlist li::before {
+    content: "▸";
+    color: var(--neon-red);
+    font-size: 10px;
+  }
 
-    /* Help text */
-    .reg-form .helptext,
-    .reg-form span.helptext {
-        display: block;
-        margin-top: 5px;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        color: var(--text-dim);
-        letter-spacing: 0.5px;
-        line-height: 1.5;
-        opacity: 0.8;
-    }
+  /* Help text */
+  .reg-form .helptext,
+  .reg-form span.helptext {
+    display: block;
+    margin-top: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    line-height: 1.5;
+    opacity: 0.8;
+  }
 
-    /* Required asterisk */
-    .reg-form label abbr {
-        color: var(--neon-red);
-        text-decoration: none;
-        margin-left: 3px;
-        font-size: 12px;
-    }
+  /* Required asterisk */
+  .reg-form label abbr {
+    color: var(--neon-red);
+    text-decoration: none;
+    margin-left: 3px;
+    font-size: 12px;
+  }
 
-    /* ── FORM GRID (two-column on wider screens) ── */
+  /* ── FORM GRID (two-column on wider screens) ── */
+  .reg-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 20px;
+  }
+
+  .reg-form-grid .full-width {
+    grid-column: 1 / -1;
+  }
+
+  /* ── NON-FIELD ERRORS ── */
+  .non-field-errors {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 50, 80, 0.09);
+    border: 1px solid rgba(255, 50, 80, 0.28);
+    border-left: 3px solid var(--neon-red);
+    color: #ffb3be;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    animation: alert-in 0.4s ease forwards;
+  }
+
+  @keyframes alert-in {
+    from {
+      opacity: 0;
+      transform: translateX(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* ── SUBMIT ZONE ── */
+  .reg-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 28px;
+  }
+
+  .btn-register {
+    position: relative;
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-main);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dark-bg);
+    background: linear-gradient(
+      135deg,
+      var(--neon-cyan) 0%,
+      var(--neon-blue) 100%
+    );
+    box-shadow:
+      0 0 24px rgba(0, 245, 255, 0.25),
+      0 4px 16px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s,
+      filter 0.2s;
+  }
+
+  .btn-register::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.18),
+      transparent
+    );
+    transition: left 0.5s;
+  }
+
+  .btn-register:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow:
+      0 0 40px rgba(0, 245, 255, 0.4),
+      0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+  .btn-register:hover::before {
+    left: 150%;
+  }
+  .btn-register:active {
+    transform: translateY(0);
+    filter: brightness(0.95);
+  }
+
+  .btn-back {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 13px 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 245, 255, 0.18);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+    transition:
+      border-color 0.2s,
+      color 0.2s,
+      background 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-back:hover {
+    border-color: rgba(0, 245, 255, 0.35);
+    color: var(--neon-cyan);
+    background: rgba(0, 245, 255, 0.06);
+  }
+
+  /* ── FOOTER ROW ── */
+  .reg-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(0, 245, 255, 0.07);
+  }
+
+  .reg-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.8px;
+  }
+
+  .reg-footer-right {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    opacity: 0.45;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 600px) {
     .reg-form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0 20px;
+      grid-template-columns: 1fr;
     }
-
     .reg-form-grid .full-width {
-        grid-column: 1 / -1;
+      grid-column: 1;
     }
-
-    /* ── NON-FIELD ERRORS ── */
-    .non-field-errors {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: rgba(255,50,80,0.09);
-        border: 1px solid rgba(255,50,80,0.28);
-        border-left: 3px solid var(--neon-red);
-        color: #ffb3be;
-        padding: 12px 16px;
-        border-radius: 4px;
-        margin-bottom: 20px;
-        font-size: 13px;
-        animation: alert-in 0.4s ease forwards;
+    .reg-card {
+      padding: 24px 16px 20px;
     }
-
-    @keyframes alert-in {
-        from { opacity: 0; transform: translateX(10px); }
-        to   { opacity: 1; transform: translateX(0); }
-    }
-
-    /* ── SUBMIT ZONE ── */
     .reg-actions {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-top: 28px;
+      flex-direction: column;
     }
-
-    .btn-register {
-        position: relative;
-        flex: 1;
-        padding: 14px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-family: var(--font-main);
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        color: var(--dark-bg);
-        background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-blue) 100%);
-        box-shadow: 0 0 24px rgba(0,245,255,0.25), 0 4px 16px rgba(0,0,0,0.4);
-        overflow: hidden;
-        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
-    }
-
-    .btn-register::before {
-        content: '';
-        position: absolute;
-        top: 0; left: -100%;
-        width: 60%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
-        transition: left 0.5s;
-    }
-
-    .btn-register:hover { transform: translateY(-2px); filter: brightness(1.08);
-        box-shadow: 0 0 40px rgba(0,245,255,0.4), 0 8px 24px rgba(0,0,0,0.5); }
-    .btn-register:hover::before { left: 150%; }
-    .btn-register:active { transform: translateY(0); filter: brightness(0.95); }
-
     .btn-back {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        padding: 13px 20px;
-        border-radius: 4px;
-        border: 1px solid rgba(0,245,255,0.18);
-        background: transparent;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        cursor: pointer;
-        text-decoration: none;
-        transition: border-color 0.2s, color 0.2s, background 0.2s;
-        white-space: nowrap;
+      width: 100%;
+      justify-content: center;
     }
-
-    .btn-back:hover {
-        border-color: rgba(0,245,255,0.35);
-        color: var(--neon-cyan);
-        background: rgba(0,245,255,0.06);
-    }
-
-    /* ── FOOTER ROW ── */
-    .reg-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 22px;
-        padding-top: 18px;
-        border-top: 1px solid rgba(0,245,255,0.07);
-    }
-
-    .reg-footer-left {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        color: var(--text-dim);
-        letter-spacing: 0.8px;
-    }
-
-    .reg-footer-right {
-        font-family: var(--font-mono);
-        font-size: 10px;
-        color: var(--text-dim);
-        opacity: 0.45;
-        letter-spacing: 0.5px;
-    }
-
-    /* ── MOBILE ── */
-    @media (max-width: 600px) {
-        .reg-form-grid { grid-template-columns: 1fr; }
-        .reg-form-grid .full-width { grid-column: 1; }
-        .reg-card { padding: 24px 16px 20px; }
-        .reg-actions { flex-direction: column; }
-        .btn-back { width: 100%; justify-content: center; }
-    }
+  }
 </style>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="reg-page">
+  <!-- Breadcrumb + step indicator -->
+  <div class="reg-meta">
+    <div class="reg-breadcrumb">
+      <svg
+        width="11"
+        height="11"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      </svg>
+      <span>Portal</span>
+      <span class="sep">/</span>
+      <span>Students</span>
+      <span class="sep">/</span>
+      <span class="current">New Registration</span>
+    </div>
+    <div class="step-indicator">
+      <div class="step-pip active"></div>
+      <div class="step-pip active"></div>
+      <div class="step-pip"></div>
+    </div>
+  </div>
 
-    <!-- Breadcrumb + step indicator -->
-    <div class="reg-meta">
-        <div class="reg-breadcrumb">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            </svg>
-            <span>Portal</span>
-            <span class="sep">/</span>
-            <span>Students</span>
-            <span class="sep">/</span>
-            <span class="current">New Registration</span>
+  <!-- Card -->
+  <div class="reg-card">
+    <div class="reg-shimmer"></div>
+
+    <!-- Header -->
+    <div class="card-head">
+      <div>
+        <div class="card-title">Student Registration</div>
+        <div class="card-subtitle">
+          ENROL NEW STUDENT INTO THE SYSTEM<span class="g-cursor"></span>
         </div>
-        <div class="step-indicator">
-            <div class="step-pip active"></div>
-            <div class="step-pip active"></div>
-            <div class="step-pip"></div>
-        </div>
+      </div>
+      <div class="reg-badge">
+        <div class="reg-badge-dot"></div>
+        NEW ENROLMENT
+      </div>
     </div>
 
-    <!-- Card -->
-    <div class="reg-card">
-        <div class="reg-shimmer"></div>
+    <div class="g-divider"></div>
 
-        <!-- Header -->
-        <div class="card-head">
-            <div>
-                <div class="card-title">Student Registration</div>
-                <div class="card-subtitle"> ENROL NEW STUDENT INTO THE SYSTEM<span class="g-cursor"></span></div>
-            </div>
-            <div class="reg-badge">
-                <div class="reg-badge-dot"></div>
-                NEW ENROLMENT
-            </div>
-        </div>
-
-        <div class="g-divider"></div>
-
-        <!-- Non-field form errors -->
-        {% if form.non_field_errors %}
-        <div class="non-field-errors">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ff3250" stroke-width="2" style="flex-shrink:0">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-        </div>
-        {% endif %}
-
-        <!-- Form -->
-        <form method="post" class="reg-form" novalidate>
-            {% csrf_token %}
-            <div class="reg-form-grid">
-                {{ form.as_p }}
-            </div>
-
-            <div class="reg-actions">
-                <a href="javascript:history.back()" class="btn-back">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="15 18 9 12 15 6"/>
-                    </svg>
-                    Back
-                </a>
-                <button type="submit" class="btn-register">
-                    Register Student
-                </button>
-            </div>
-        </form>
-
-        <!-- Footer row -->
-        <div class="reg-footer">
-            <div class="reg-footer-left">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#00f5ff" stroke-width="2">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-                DATA ENCRYPTED IN TRANSIT
-            </div>
-            <div class="reg-footer-right">PARACH AMS v2.4.1</div>
-        </div>
-
+    <!-- Non-field form errors -->
+    {% if form.non_field_errors %}
+    <div class="non-field-errors">
+      <svg
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#ff3250"
+        stroke-width="2"
+        style="flex-shrink: 0"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
     </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="post" class="reg-form" novalidate>
+      {% csrf_token %}
+      <div class="reg-form-grid">{{ form.as_p }}</div>
+
+      <div class="reg-actions">
+        <a href="javascript:history.back()" class="btn-back">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Back
+        </a>
+        <button type="submit" class="btn-register">Register Student</button>
+      </div>
+      <div class="reg-login-redirect">
+        <span>Already have an account?</span>
+        <a href="{% url 'login' %}" class="login-link">
+          Access Portal
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </a>
+      </div>
+    </form>
+
+    <!-- Footer row -->
+    <div class="reg-footer">
+      <div class="reg-footer-left">
+        <svg
+          width="11"
+          height="11"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#00f5ff"
+          stroke-width="2"
+        >
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+        DATA ENCRYPTED IN TRANSIT
+      </div>
+      <div class="reg-footer-right">PARACH AMS v2.4.1</div>
+    </div>
+  </div>
 </div>
 
 <script>
-    /*
+  /*
         Stagger-animate each form field on page load.
         Django's form.as_p outputs <p> tags — we fade them in one-by-one.
     */
-    document.querySelectorAll('.reg-form p').forEach((el, i) => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(12px)';
-        el.style.transition = `opacity 0.45s ease, transform 0.45s ease`;
-        el.style.transitionDelay = `${i * 55}ms`;
-        requestAnimationFrame(() => {
-            el.style.opacity = '1';
-            el.style.transform = 'translateY(0)';
-        });
+  document.querySelectorAll(".reg-form p").forEach((el, i) => {
+    el.style.opacity = "0";
+    el.style.transform = "translateY(12px)";
+    el.style.transition = `opacity 0.45s ease, transform 0.45s ease`;
+    el.style.transitionDelay = `${i * 55}ms`;
+    requestAnimationFrame(() => {
+      el.style.opacity = "1";
+      el.style.transform = "translateY(0)";
     });
+  });
 </script>
 
 {% endblock %}
