@@ -11,5 +11,6 @@ urlpatterns = [
     
     path('register/', views.student_register, name='student_register'),
     path("logout/", views.logout_view, name="logout"),
+    path('debug/locations/', views.get_locations_debug, name='get_locations_debug'),
 
 ]

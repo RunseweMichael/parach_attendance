@@ -78,13 +78,24 @@ def scan_qr(request):
     """Main QR scanning page"""
     courses = Course.objects.filter(is_active=True)
     
+    # In scan_qr view, replace the verify_location block with this temporarily:
     if request.method == 'POST':
         qr_code_value = request.POST.get('qr_code')
         course_id = request.POST.get('course')
         latitude = float(request.POST.get('latitude', 0))
         longitude = float(request.POST.get('longitude', 0))
-        
-        # Verify location
+    
+        # DEBUG — print to terminal so you can see what's happening
+        print(f"\n=== SCAN DEBUG ===")
+        print(f"Received coords: lat={latitude}, lng={longitude}")
+    
+        locations = OrganizationLocation.objects.filter(is_active=True)
+        for loc in locations:
+            from geopy.distance import geodesic
+            dist = geodesic((loc.latitude, loc.longitude), (latitude, longitude)).meters
+            print(f"Location '{loc.name}': org=({loc.latitude},{loc.longitude}), radius={loc.radius_meters}m, distance={dist:.1f}m")
+        print(f"==================\n")
+    
         if not verify_location(latitude, longitude):
             messages.error(request, 'You must be within the organization premises to sign in.')
             return redirect('scan_qr')
@@ -385,3 +396,22 @@ def student_register(request):
 
 
 
+
+from django.http import JsonResponse
+
+@login_required
+def get_locations_debug(request):
+    locations = OrganizationLocation.objects.filter(is_active=True).values(
+        'name', 'latitude', 'longitude', 'radius_meters'
+    )
+    return JsonResponse({
+        'locations': [
+            {
+                'name': l['name'],
+                'latitude': str(l['latitude']),
+                'longitude': str(l['longitude']),
+                'radius': l['radius_meters']
+            }
+            for l in locations
+        ]
+    })
