@@ -10,7 +10,8 @@ urlpatterns = [
     path('admin/locations/', views.add_location, name='add_location'),
     
     path('register/', views.student_register, name='student_register'),
-    path("logout/", views.logout_view, name="logout"),
+    path('logout/', views.logout_view, name="logout"),
     path('debug/locations/', views.get_locations_debug, name='get_locations_debug'),
+    path('location/delete/<int:pk>/', views.delete_location, name='delete_location'),
 
 ]

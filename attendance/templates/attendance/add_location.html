@@ -556,6 +556,17 @@
         <span class="current">Locations</span>
     </div>
 
+    {% if messages %}
+    <div style="margin-bottom:20px;">
+        {% for message in messages %}
+            <div style="padding:10px 15px; background:rgba(0,255,136,0.1); border-radius:4px; font-family:var(--font-mono); font-size:12px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
     <!-- ══ ADD LOCATION FORM CARD ══ -->
     <div class="loc-card">
         <div class="loc-shimmer"></div>
@@ -670,6 +681,9 @@
             </div>
         </form>
 
+        
+
+
         <div class="card-footer-row">
             <div class="footer-secure">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#00f5ff" stroke-width="2">
@@ -687,10 +701,6 @@
 
         <div class="loc-list-header">
             <div class="section-label">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f5ff" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                    <circle cx="12" cy="10" r="3"/>
-                </svg>
                 Registered Locations
             </div>
             <div class="loc-count">
@@ -703,37 +713,76 @@
         <ul class="loc-list">
             {% for location in locations %}
             <li class="loc-item">
-                <div class="loc-item-left">
-                    <div class="loc-item-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffcc00" stroke-width="2">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                            <circle cx="12" cy="10" r="3"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="loc-item-name">{{ location.name }}</div>
-                        <div class="loc-item-meta">
-                            <span class="loc-meta-chip">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+
+                <div style="width:100%;">
+
+                    <!-- CLICKABLE LOCATION ROW -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;"
+                         onclick="toggleQR('{{ location.id }}')">
+
+                        <div class="loc-item-left">
+                            <div class="loc-item-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffcc00" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
                                 </svg>
-                                {{ location.radius_meters }}m radius
-                            </span>
+                            </div>
+                            <div>
+                                <div class="loc-item-name">{{ location.name }}</div>
+                                <div class="loc-item-meta">
+                                    <span class="loc-meta-chip">
+                                        {{ location.radius_meters }}m radius
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+
+                        <div class="loc-status {% if location.is_active %}active{% else %}inactive{% endif %}">
+                            <div class="loc-status-dot"></div>
+                            {% if location.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                        </div>
+
+                        <form method="post" action="{% url 'delete_location' location.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-back" 
+                                onclick="return confirm('Are you sure you want to delete {{ location.name }}?');">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                                </svg>
+                                Delete
+                            </button>
+                        </form>
+
                     </div>
+
+                    <!-- QR SECTION (Hidden by default) -->
+                    <div id="qr-{{ location.id }}" 
+                         style="display:none; margin-top:18px; text-align:center;">
+
+                        {% for qr in location.qr_codes.all %}
+                            <div style="margin-bottom:15px;">
+                                <img src="{{ qr.qr_image.url }}"
+                                     style="width:180px; height:180px; background:#fff; padding:10px; border-radius:6px; border:1px solid rgba(0,245,255,0.2);" />
+
+                                <div style="margin-top:8px; font-family:var(--font-mono); font-size:10px; opacity:0.6;">
+                                    QR Code: {{ qr.code }}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div style="font-family:var(--font-mono); font-size:10px; opacity:0.5;">
+                                No QR code available
+                            </div>
+                        {% endfor %}
+
+                    </div>
+
                 </div>
-                <div class="loc-status {% if location.is_active %}active{% else %}inactive{% endif %}">
-                    <div class="loc-status-dot"></div>
-                    {% if location.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
-                </div>
+
             </li>
             {% empty %}
             <li>
                 <div class="loc-empty">
-                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00f5ff" stroke-width="1">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                    </svg>
                     NO LOCATIONS CONFIGURED YET
                 </div>
             </li>
@@ -742,8 +791,18 @@
     </div>
 
 </div>
-
 <script>
+    /* Toggle QR visibility */
+    function toggleQR(id) {
+        const element = document.getElementById("qr-" + id);
+
+        if (element.style.display === "none" || element.style.display === "") {
+            element.style.display = "block";
+        } else {
+            element.style.display = "none";
+        }
+    }
+
     /* Stagger list items */
     document.querySelectorAll('.loc-item').forEach((el, i) => {
         el.style.animationDelay = `${i * 80}ms`;

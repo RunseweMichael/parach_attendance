@@ -15,6 +15,12 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from .models import Course, QRCode, Attendance, OrganizationLocation
 from .forms import StudentRegistrationForm
+import json
+import qrcode
+from io import BytesIO
+from django.core.files import File
+import uuid
+
 
 User = get_user_model()
 
@@ -223,10 +229,10 @@ def admin_dashboard(request):
         "course_filter": course_filter,
         "user_type_filter": user_type_filter,
         "location_filter": location_filter,
-        "course_labels": course_labels,
-        "course_totals": course_totals,
-        "location_labels": location_labels,
-        "location_totals": location_totals,
+        "course_labels": json.dumps(course_labels),
+        "course_totals": json.dumps(course_totals),
+        "location_labels": json.dumps(location_labels),
+        "location_totals": json.dumps(location_totals),
         "monthly_total": monthly_total,
         "top_course": top_course,
     }
@@ -271,26 +277,58 @@ def add_course(request):
     return render(request, "attendance/add_course.html", {"courses": courses})
 
 
+
+@admin_required
 @admin_required
 def add_location(request):
+
     if request.method == "POST":
         name = request.POST.get("name")
         latitude = request.POST.get("latitude")
         longitude = request.POST.get("longitude")
         radius = request.POST.get("radius")
 
-        OrganizationLocation.objects.create(
+        location = OrganizationLocation.objects.create(
             name=name,
             latitude=latitude,
             longitude=longitude,
             radius_meters=radius
         )
 
-        messages.success(request, "Location added successfully.")
-        return redirect("add_location")
+        qr_code_string = str(uuid.uuid4())
 
-    locations = OrganizationLocation.objects.all()
-    return render(request, "attendance/add_location.html", {"locations": locations})
+        QRCode.objects.create(
+            code=qr_code_string,
+            location=location,
+            is_active=True
+        )
+
+        messages.success(request, "Location and QR code created successfully.")
+
+    locations = OrganizationLocation.objects.prefetch_related("qr_codes")
+
+    return render(
+        request,
+        "attendance/add_location.html",
+        {
+            "locations": locations
+        }
+    )
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import OrganizationLocation
+
+def delete_location(request, pk):
+    if request.method == "POST":
+        location = get_object_or_404(OrganizationLocation, pk=pk)
+        location.delete()
+        messages.success(request, f"Location '{location.name}' deleted successfully.")
+    return redirect('admin_dashboard')  # or the page where locations are listed
+
+
+
 
 
 # =====================================================
