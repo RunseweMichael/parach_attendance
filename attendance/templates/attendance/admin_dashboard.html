@@ -716,12 +716,22 @@
             <span>Filter Records</span>
         </div>
         <form method="get" class="filter-form">
-            <input type="date" name="date" value="{{ date_filter|date:'Y-m-d' }}" class="filter-input">
+            <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="filter-input">
+            <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="filter-input">
 
             <select name="user_type" class="filter-select">
                 <option value="">All Roles</option>
                 <option value="student" {% if user_type_filter == 'student' %}selected{% endif %}>Student</option>
                 <option value="tutor"   {% if user_type_filter == 'tutor'   %}selected{% endif %}>Tutor</option>
+            </select>
+
+            <select name="tutor" class="filter-select">
+                <option value="">All Tutors</option>
+                {% for tutor in tutors %}
+                <option value="{{ tutor.id }}" {% if tutor_filter|add:'' == tutor.id|stringformat:"s" %}selected{% endif %}>
+                    {{ tutor.get_full_name|default:tutor.username }}
+                </option>
+                {% endfor %}
             </select>
 
             <select name="course" class="filter-select">

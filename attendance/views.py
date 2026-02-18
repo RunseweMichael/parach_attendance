@@ -151,22 +151,31 @@ def admin_dashboard(request):
         return redirect("scan_qr")
 
     # Filters
-    date_filter = request.GET.get("date")
+    start_date = request.GET.get("start_date")
+    end_date   = request.GET.get("end_date")
     course_filter = request.GET.get("course")
     user_type_filter = request.GET.get("user_type")
+    tutor_filter = request.GET.get("tutor")  # NEW: filter by tutor
     location_filter = request.GET.get("location")
 
-    if date_filter:
-        try:
-            date_filter = datetime.strptime(date_filter, "%Y-%m-%d").date()
-        except ValueError:
-            date_filter = timezone.now().date()
-    else:
-        date_filter = timezone.now().date()
+    # Default date range = today
+    try:
+        if start_date:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        else:
+            start_date = timezone.now().date()
+        if end_date:
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        else:
+            end_date = start_date
+    except ValueError:
+        start_date = end_date = timezone.now().date()
 
-    attendances = Attendance.objects.select_related(
-        "user", "course", "qr_code"
-    ).filter(check_in_time__date=date_filter)
+    # Filter attendances
+    attendances = Attendance.objects.select_related("user", "course", "qr_code").filter(
+        check_in_time__date__gte=start_date,
+        check_in_time__date__lte=end_date
+    )
 
     if course_filter:
         attendances = attendances.filter(course_id=course_filter)
@@ -196,6 +205,7 @@ def admin_dashboard(request):
 
     courses = Course.objects.filter(is_active=True)
     locations = OrganizationLocation.objects.filter(is_active=True)
+    tutors = User.objects.filter(user_type="tutor")  # NEW: list of tutors
 
     current_month = timezone.now().month
     current_year = timezone.now().year
@@ -225,10 +235,14 @@ def admin_dashboard(request):
         "tutors_today": tutors_count,
         "courses": courses,
         "locations": locations,
-        "date_filter": date_filter,
+        "tutors": tutors,
+        # "date_filter": date_filter,
+        "start_date": start_date,
+        "end_date": end_date,
         "course_filter": course_filter,
         "user_type_filter": user_type_filter,
         "location_filter": location_filter,
+        "tutor_filter": tutor_filter,
         "course_labels": json.dumps(course_labels),
         "course_totals": json.dumps(course_totals),
         "location_labels": json.dumps(location_labels),
